@@ -6,9 +6,7 @@
 
 #include <math.h>
 
-float time_diff(struct timeval *start, struct timeval *end) {
-    return (end->tv_sec - start->tv_sec) + 1e-6 * (end->tv_usec - start->tv_usec);
-}
+#include "utility/timecost.h"
 
 __global__ void kernelAdd(float * A, float * B, float * C)
 {
@@ -60,28 +58,26 @@ int main()
 
     dim3 gridSize2D(gridSize2Dx, gridSize2Dy);
     dim3 blockSize2D(blockSize2Dx, blockSize2Dy);
-    gettimeofday(&start, NULL);
-    kernelAdd<<<gridSize2D, blockSize2D>>>(A_dev,B_dev,C_dev);
-    
-    int ret = 0;
-    //  ret = cudaDeviceSynchronize();
-    ret = cudaMemcpy(C_host,C_dev,sum_bytes,cudaMemcpyDeviceToHost);
 
-    gettimeofday(&end, NULL);
-
-    printf("cuda time spent: %0.8f sec\n", time_diff(&start, &end));
+    {
+        timecost t1("cuda");
+        kernelAdd<<<gridSize2D, blockSize2D>>>(A_dev,B_dev,C_dev);
+        int ret = 0;
+        //  ret = cudaDeviceSynchronize();
+        ret = cudaMemcpy(C_host,C_dev,sum_bytes,cudaMemcpyDeviceToHost);
+    }
 
     for(int i=0;i<sum;i++){
         // printf("C[%d]:%f \n", i, C_host[i]);
         C_host[i] = 0.0f;
     }
 
-    gettimeofday(&start, NULL);
-    for(int i=0;i<sum;i++){
-        C_host[i]=cos(A_host[i])+sin(B_host[i]);
+    {
+        timecost t2("cpu");
+        for(int i=0;i<sum;i++){
+            C_host[i]=cos(A_host[i])+sin(B_host[i]);
+        }
     }
-    gettimeofday(&end, NULL);
-    printf("cpu time spent: %0.8f sec\n", time_diff(&start, &end));
 
     for(int i=0;i<sum;i++){
         // printf("C[%d]:%f \n", i, C_host[i]);
