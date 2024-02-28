@@ -23,11 +23,11 @@ __global__ void kernelAdd(float * A, float * B, float * C)
 
 int main()
 {
-    struct timeval start;
-    struct timeval end;
 
-    int gridSize2Dx = 16;
-    int gridSize2Dy = 16;
+for(int cycle=0;cycle < 32;cycle++)
+{
+    int gridSize2Dx = 16*cycle;
+    int gridSize2Dy = 16*cycle;
     //blocksize MAX 1024
     int blockSize2Dx = 32;
     int blockSize2Dy = 32;
@@ -48,22 +48,20 @@ int main()
     float* C_host=(float*)malloc(sum_bytes);
 
     float *A_dev=NULL;
-    cudaMalloc((void**)&A_dev,sum_bytes);
-    cudaMemcpy(A_dev,A_host,sum_bytes,cudaMemcpyHostToDevice);
     float *B_dev=NULL;
-    cudaMalloc((void**)&B_dev,sum_bytes);
-    cudaMemcpy(B_dev,B_host,sum_bytes,cudaMemcpyHostToDevice);
     float *C_dev=NULL;
-    cudaMalloc((void**)&C_dev,sum_bytes);
-
-    dim3 gridSize2D(gridSize2Dx, gridSize2Dy);
-    dim3 blockSize2D(blockSize2Dx, blockSize2Dy);
-
     {
         timecost t1("cuda");
+        cudaMalloc((void**)&A_dev,sum_bytes);
+        cudaMemcpy(A_dev,A_host,sum_bytes,cudaMemcpyHostToDevice);
+        cudaMalloc((void**)&B_dev,sum_bytes);
+        cudaMemcpy(B_dev,B_host,sum_bytes,cudaMemcpyHostToDevice);
+
+        cudaMalloc((void**)&C_dev,sum_bytes);
+        dim3 gridSize2D(gridSize2Dx, gridSize2Dy);
+        dim3 blockSize2D(blockSize2Dx, blockSize2Dy);
         kernelAdd<<<gridSize2D, blockSize2D>>>(A_dev,B_dev,C_dev);
         int ret = 0;
-        //  ret = cudaDeviceSynchronize();
         ret = cudaMemcpy(C_host,C_dev,sum_bytes,cudaMemcpyDeviceToHost);
     }
 
@@ -90,5 +88,6 @@ int main()
     free(B_host);
     cudaFree(C_dev);
     free(C_host);
+}
     return 0;
 }

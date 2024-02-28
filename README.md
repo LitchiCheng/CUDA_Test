@@ -4,8 +4,9 @@
 `nvcc -o calcArrayByCpuOrCuda calcArrayByCpuOrCuda.cu`
 
 ## result
-```
-size 262144 
-cuda time spent: 0.00231400 sec
-cpu time spent: 0.00833800 sec
-```
+
+|bytes|cuda cost|cpu cost|
+|:-----|:-----|:-----|
+|65536|0.069796|0.002085|
+|262144|0.068762|0.008604|
+|67108864|0.359864|2.18625|

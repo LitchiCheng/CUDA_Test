@@ -1,6 +1,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <iostream>
+#include <sstream>
 
 class timecost
 {
@@ -17,7 +18,20 @@ public:
     }
     ~timecost(){
         gettimeofday(&_end, NULL);
-        std::cout << _name << "time spent:" << time_diff(&_start, &_end) << "sec" << std::endl;
+        float diff = time_diff(&_start, &_end);
+        std::cout << _name << "time spent:" << diff << "sec" << std::endl;
+
+        std::ostringstream oss;
+        oss<<diff;
+        std::string diff_str(oss.str());
+        std::string cmd = "echo " + diff_str + " >> ";
+        if("cpu" == _name){
+            std::string f = cmd + "cpu.txt";
+            system(f.c_str());
+        }else if("cuda" == _name){
+            std::string f = cmd + "cuda.txt";
+            system(f.c_str());
+        }
     }
 };
 
